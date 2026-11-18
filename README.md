@@ -1,7 +1,7 @@
-# NBA Predictor V3
+# NBA Predictor V4 — source ESPN
 
-Upload the four files `app.py`, `model.py`, `nba_data.py`, and `requirements.txt` to the root of your existing GitHub repository, replacing the old versions. Streamlit Community Cloud automatically redeploys.
+Remplacez les fichiers à la racine du dépôt GitHub, branche `main`, puis laissez Streamlit redéployer. La V4 remplace la récupération NBA.com (timeout) par une récupération saison par saison via l'endpoint public ESPN scoreboard.
 
-In the app, click **Récupérer les saisons NBA**. Download and keep the generated CSV: Streamlit session state is not persistent. The source is NBA.com via `nba_api` and requests may fail on cloud IP addresses. Failed seasons are reported; no synthetic games are inserted.
+Le service ESPN n'est pas une API officielle garantie. Les résultats ne sont pas intégrés dans cette archive : la récupération réseau doit être testée sur Streamlit. En cas de périodes manquantes, l'export est désactivé. Une saison seule ne suffit pas pour valider un modèle multi-saisons.
 
-This is a prototype. It does not yet automate 09:00/22:00 Paris-time snapshots or integrate injuries/odds. Check chronological data availability before relying on forecasts. NBA.com data are subject to NBA.com terms.
+Les prédictions 9 h / 22 h ne sont pas automatisées ; les blessures, cotes et captures horodatées restent à implémenter. Ne pas interpréter les estimations comme validées ou comme des conseils de mise.

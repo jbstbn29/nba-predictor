@@ -11,20 +11,24 @@ st.caption('Saison régulière • données NBA.com • fuseau Europe/Paris')
 st.info('Les données sont téléchargées à la demande. Pas encore de captures automatiques à 9 h et 22 h, ni de blessures/cotes intégrées.')
 
 if 'csv' not in st.session_state:st.session_state.csv=None
-with st.expander('Récupérer les résultats NBA depuis 2018-2019',expanded=st.session_state.csv is None):
-    st.write('Clique sur le bouton ci-dessous. La récupération peut prendre plusieurs minutes et NBA.com peut refuser certaines requêtes depuis un hébergement cloud.')
-    if st.button('📥 Récupérer les saisons NBA',type='primary'):
-        from nba_data import fetch_all
+with st.expander('Récupérer les données via ESPN (alternative à NBA.com)',expanded=st.session_state.csv is None):
+    st.write('Source ESPN non officielle : télécharger une saison à la fois. Les données ne sont pas inventées. Le service peut être indisponible ou limiter les requêtes.')
+    season_year=st.selectbox('Saison NBA',list(range(2018,2027)),index=7,format_func=lambda y:f'{y}-{str(y+1)[-2:]}')
+    if st.button('📥 Récupérer cette saison',type='primary'):
+        from espn_data import fetch_season
         bar=st.progress(0)
-        def update(y,errors):bar.progress((y-2017)/9)
         try:
-            data,errors=fetch_all(2018,2026,update)
-            st.session_state.csv=data.to_csv(index=False).encode('utf-8')
-            st.success(f'{len(data)} matchs récupérés, dont {data.home_pts.notna().sum()} terminés.')
-            if errors:st.warning('Saisons non récupérées : '+' | '.join(errors))
-        except Exception as e:st.error('Téléchargement impossible : '+str(e))
+            data,errors=fetch_season(season_year,lambda i,n:bar.progress(min(i/n,1.0)))
+            if errors:
+                st.error(f'{len(errors)} périodes non récupérées. Saison incomplète : export désactivé pour éviter un historique trompeur.')
+                st.code('\n'.join(errors[:5]))
+            else:
+                st.session_state.csv=data.to_csv(index=False).encode('utf-8')
+                st.success(f'{len(data)} rencontres chargées pour {season_year}-{str(season_year+1)[-2:]}.')
+        except Exception as exc:st.error('Source ESPN indisponible : '+str(exc))
     if st.session_state.csv:
-        st.download_button('Sauvegarder les données CSV',st.session_state.csv,'nba_regular_season.csv','text/csv')
+        st.download_button('Sauvegarder le CSV',st.session_state.csv,'nba_regular_season.csv','text/csv')
+    st.caption('Pour couvrir toutes les saisons, télécharge chaque saison puis fusionne les CSV hors de cette première interface. Une seule saison ne suffit pas au backtesting multi-saisons.')
 file=st.file_uploader('Ou importer un CSV déjà téléchargé',type='csv')
 raw=file.getvalue() if file is not None else st.session_state.csv
 if raw is None:
